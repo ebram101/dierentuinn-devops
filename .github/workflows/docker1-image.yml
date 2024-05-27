@@ -19,12 +19,14 @@ jobs:
     - name: Build the Docker image
       run: docker build --no-cache --file Dierentuinn/Dockerfile --tag dierentuinn-name:$(date +%s) Dierentuinn
 
-    - name: Run tests and build       
-       docker run --rm \
-          -v /home/runner/work/dierentuinn-devops/dierentuinn-devops:/workspace \
-          -w /workspace \
-          mcr.microsoft.com/dotnet/sdk:8.0 \
-          bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
+    - name: Run tests and build
+      run: |
+        docker run --rm \
+        -v /home/runner/work/dierentuinn-devops/dierentuinn-devops:/workspace \
+        -w /workspace \
+        mcr.microsoft.com/dotnet/sdk:8.0 \
+        bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
+
 
         
       
