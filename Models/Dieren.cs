@@ -9,7 +9,7 @@
         
         public string size { get; set; }
 
-        public string ActivityPattern { get; set; }
+        public string ActivityPattern { get; set; }''''
 
 
     }
