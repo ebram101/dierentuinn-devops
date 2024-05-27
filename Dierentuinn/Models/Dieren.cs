@@ -12,5 +12,7 @@
         public string ActivityPattern { get; set; }
 
 
+
+
     }
 }
