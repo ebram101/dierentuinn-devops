@@ -1,0 +1,18 @@
+﻿@model dierentuinn.Models.Dieren
+
+@{
+    ViewBag.Title = "Sunrise";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<p>@ViewBag.ActivityMessage</p>
+
+<p>
+    <strong>Naam:</strong> @Model.Name<br />
+    <strong>Activiteitspatroon:</strong> @Model.ActivityPattern
+</p>
+
+<p>
+    <a href="@Url.Action("Index", "Animals")">Terug naar overzicht</a>
+</p>
