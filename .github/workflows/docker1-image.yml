@@ -21,12 +21,11 @@ jobs:
 
     - name: Run tests and build       
       run: | 
-          docker run --rm \ 
-          -v ${{ github.workspace }}:/workspace \   
-          -w /workspace \ 
-          mcr.microsoft.com/dotnet/sdk:8.0 \ 
-          bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
-
+       docker run --rm \
+       -v /home/runner/work/dierentuinn-devops/dierentuinn-devops:/workspace  
+       w /workspace \
+        mcr.microsoft.com/dotnet/sdk:8.0 \
+        bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
         
       
 
