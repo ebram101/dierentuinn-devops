@@ -1,12 +1,4 @@
 
-
-
-
-
-
-
-workflow file:
-
 name: docker building
 
 on:
