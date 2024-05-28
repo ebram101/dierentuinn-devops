@@ -44,10 +44,15 @@ jobs:
         env:
           IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/dierentuinn-name:${{ github.sha }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
-            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker pull $IMAGE_NAME
-            docker stop dierentuinn-container || true
-            docker rm dierentuinn-container || true
-            docker run -d --name dierentuinn-container -p 80:80 $IMAGE_NAME
+      - name: Deploy to Server
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/dierentuinn-name:${{ github.sha }}
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker pull $IMAGE_NAME
+          docker stop dierentuinn-container || true
+          docker rm dierentuinn-container || true
+          docker run -d --name dierentuinn-container -p 80:80 $IMAGE_NAME
           EOF
+
