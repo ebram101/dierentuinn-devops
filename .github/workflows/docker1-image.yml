@@ -11,12 +11,15 @@ on:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: dierentuinn-name:${{ github.sha }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build the Docker image
-        run: docker build --no-cache --file Dierentuinn/Dockerfile --tag dierentuinn-name:$(date +%s) Dierentuinn
+        run: docker build --no-cache --file Dierentuinn/Dockerfile --tag $IMAGE_NAME Dierentuinn
 
       - name: Run tests and build
         run: |
@@ -34,18 +37,17 @@ jobs:
 
       - name: Push the Docker image
         run: |
-          IMAGE_NAME=dierentuinn-name:$(date +%s)
-          docker tag dierentuinn-name ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME
+          docker tag $IMAGE_NAME ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME
           docker push ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME
 
       - name: Deploy to Server
         env:
-          IMAGE_NAME: dierentuinn-name:$(date +%s)
+          IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/dierentuinn-name:${{ github.sha }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker pull ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME
+            docker pull $IMAGE_NAME
             docker stop dierentuinn-container || true
             docker rm dierentuinn-container || true
-            docker run -d --name dierentuinn-container -p 80:80 ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME
+            docker run -d --name dierentuinn-container -p 80:80 $IMAGE_NAME
           EOF
