@@ -21,7 +21,7 @@ jobs:
           docker build --no-cache \
             -t $IMAGE_NAME \
             --target build --build-arg "INCLUDE_UNITTESTING=true" \
-            -f ./DierenTuinApplicatieDemo/Dockerfile .
+            -f ./Dierentuinn/Dockerfile .
 
       - name: Run dotnet tests inside Docker container
         run: docker run --entrypoint "" $IMAGE_NAME dotnet test
