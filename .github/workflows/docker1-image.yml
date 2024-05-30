@@ -1,32 +1,67 @@
-name: Docker Building
+name: docker building
 
 on:
   push:
-    branches:
-      - 'master'
+    branches: [ "*" ]
   pull_request:
-    branches:
-      - 'master'
+    branches: [ "*" ]
 
 jobs:
   build_and_publish:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, ARM64]
     env:
-      IMAGE_NAME: dierentuinn-name:${{ github.sha }}
+      IMAGE_NAME: twizzel/dierentuin:${{ github.sha }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build the Docker image
-        run: docker build --no-cache --file Dierentuinn/Dockerfile --tag $IMAGE_NAME Dierentuinn
-
-      - name: Run tests and build
         run: |
-          docker run --rm \
-          -v /home/runner/work/dierentuinn-devops/dierentuinn-devops:/workspace \
-          -w /workspace \
-          mcr.microsoft.com/dotnet/sdk:8.0 \
-          bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
+          docker build --no-cache \
+            -t $IMAGE_NAME \
+            --target build --build-arg "INCLUDE_UNITTESTING=true" \
+            -f ./DierenTuinApplicatieDemo/Dockerfile .
 
-      
+      - name: Run dotnet tests inside Docker container
+        run: docker run --entrypoint "" $IMAGE_NAME dotnet test
+
+      - name: Docker build as final
+        run: |
+          docker build \
+            -t $IMAGE_NAME \
+            --target final --build-arg "INCLUDE_UNITTESTING=false" \
+            -f ./DierenTuinApplicatieDemo/Dockerfile .
+
+  infrastructure_testing:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: build_and_publish
+    env:
+      GOSS_SLEEP: 2
+      GOSS_FILE: .goss/goss.yaml # Goss path
+    steps:
+      - name: Install Goss and dgoss
+        run: |
+          curl -L https://github.com/aelsabbahy/goss/releases/latest/download/goss-linux-arm64 -o /usr/local/bin/goss
+          chmod +x /usr/local/bin/goss
+          curl -L https://github.com/aelsabbahy/goss/releases/latest/download/dgoss -o /usr/local/bin/dgoss
+          chmod +x /usr/local/bin/dgoss
+
+      - name: Run Goss tests inside Docker container
+        run: dgoss run $IMAGE_NAME
+
+  push_docker_hub:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: infrastructure_testing
+    if: github.ref_name == 'master' || github.ref_name == 'production'
+    steps:
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Tag Docker image
+        run: docker tag $IMAGE_NAME twizzel/dierentuin:latest
+
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME
+          docker push twizzel/dierentuin:latest
