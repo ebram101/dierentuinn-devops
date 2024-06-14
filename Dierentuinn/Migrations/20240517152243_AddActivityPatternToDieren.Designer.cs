@@ -10,7 +10,7 @@ using dierentuinn.Data;
 
 namespace dierentuinn.Migrations
 {
-    [DbContext(typeof(dierentuinnContext))]
+    [DbContext(typeof(DierentuinnContext))]
     [Migration("20240517152243_AddActivityPatternToDieren")]
     partial class AddActivityPatternToDieren
     {

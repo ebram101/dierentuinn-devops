@@ -13,7 +13,7 @@ namespace dierentuinn.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "ActivityPattern",
                 table: "Dieren",
-                type: "nvarchar(max)",
+                type: "TEXT",
                 nullable: false,
                 defaultValue: "");
         }
