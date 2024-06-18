@@ -14,11 +14,10 @@ RUN dotnet build "dierentuinn.csproj" -c Release -o /app/build
 RUN dotnet ef database update
 
 # Publish the app
-FROM build AS publish
 RUN dotnet publish "dierentuinn.csproj" -c Release -o /app/publish
 
 # Final stage: use runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "dierentuinn.dll"]
