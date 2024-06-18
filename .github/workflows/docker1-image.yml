@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/dierentuinn-name:${{ github.sha }}
+      BUILD_CONFIGURATION: Release
 
     steps:
       - name: Checkout
@@ -22,7 +23,7 @@ jobs:
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build the Docker image
-        run: docker build --no-cache --file Dierentuinn/Dockerfile --tag $IMAGE_NAME Dierentuinn
+        run: docker build --no-cache --build-arg BUILD_CONFIGURATION=$BUILD_CONFIGURATION --file Dierentuinn/Dockerfile --tag $IMAGE_NAME Dierentuinn
 
       - name: Push Docker image to GitHub Container Registry
         run: docker push $IMAGE_NAME
