@@ -1,4 +1,4 @@
-name: Docker Building
+name: Docker Building and Deployment
 
 on:
   push:
@@ -12,21 +12,89 @@ jobs:
   build_and_publish:
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: dierentuinn-name:${{ github.sha }}
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/dierentuinn-name:${{ github.sha }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Log in to GitHub Container Registry
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Build the Docker image
         run: docker build --no-cache --file Dierentuinn/Dockerfile --tag $IMAGE_NAME Dierentuinn
+
+      - name: Push Docker image to GitHub Container Registry
+        run: docker push $IMAGE_NAME
 
       - name: Run tests and build
         run: |
           docker run --rm \
-          -v /home/runner/work/dierentuinn-devops/dierentuinn-devops:/workspace \
+          -v $(pwd):/workspace \
           -w /workspace \
           mcr.microsoft.com/dotnet/sdk:8.0 \
           bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
-          
-      
+
+  deploy:
+    needs: build_and_publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+
+      - name: Create Kubernetes manifests
+        run: |
+          cat <<EOF > k8s/deployment.yaml
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: dierentuinn-deployment
+            labels:
+              app: dierentuinn
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: dierentuinn
+            template:
+              metadata:
+                labels:
+                  app: dierentuinn
+              spec:
+                containers:
+                - name: dierentuinn-container
+                  image: ghcr.io/${{ github.repository_owner }}/dierentuinn-name:${{ github.sha }}
+                  ports:
+                  - containerPort: 80
+          EOF
+
+          cat <<EOF > k8s/service.yaml
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: dierentuinn-service
+          spec:
+            selector:
+              app: dierentuinn
+            ports:
+            - protocol: TCP
+              port: 80
+              targetPort: 80
+            type: LoadBalancer
+          EOF
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
