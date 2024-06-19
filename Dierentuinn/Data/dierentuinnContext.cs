@@ -1,33 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
-using dierentuinn.Models;
+﻿using dierentuinn.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace dierentuinn.Data
 {
-    public class DierentuinnContext : DbContext
+    public class DierentuinDbContext : DbContext
     {
-        public DierentuinnContext(DbContextOptions<DierentuinnContext> options)
+        public DierentuinDbContext(DbContextOptions <DierentuinDbContext> options)
             : base(options)
         {
         }
 
         public DbSet<Dieren> Dierens { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Enclosure> Enclosures { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Dieren>()
-                .HasOne(d => d.Category)
-                .WithMany(c => c.Dierens)
-                .HasForeignKey(d => d.CategoryId);
-
-            modelBuilder.Entity<Dieren>()
-                .HasOne(d => d.Enclosure)
-                .WithMany(e => e.Dierens)
-                .HasForeignKey(d => d.EnclosureId);
-
-            modelBuilder.Entity<CustomSize>()
-              .HasKey(c => c.CustomSizeId);
-        }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Enclosure> Enclosures { get; set; }
+        public DbSet<CustomSize> CustomSizes { get; set; }
     }
 }
+
+
+
+
