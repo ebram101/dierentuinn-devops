@@ -10,14 +10,15 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy the project files and restore dependencies
-COPY ["Dierentuinn/dierentuinn.csproj", "Dierentuinn/"]
-COPY ["TestProject1/TestProject1.csproj", "TestProject1/"]
+COPY ["correct/path/to/Dierentuinn/dierentuinn.csproj", "Dierentuinn/"]
+COPY ["correct/path/to/TestProject1/TestProject1.csproj", "TestProject1/"]
 RUN dotnet restore "Dierentuinn/dierentuinn.csproj"
 RUN dotnet restore "TestProject1/TestProject1.csproj"
 
 # Copy all files and build the application
-COPY . .
-WORKDIR "/src/Dierentuinn"
+COPY Dierentuinn/ Dierentuinn/
+COPY TestProject1/ TestProject1/
+WORKDIR /src/Dierentuinn
 RUN dotnet build "dierentuinn.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Stage for running tests
