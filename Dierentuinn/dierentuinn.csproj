@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>45fa3801-1ff4-47a0-a583-8de1da3ac6b0</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<DockerfileContext>.</DockerfileContext>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Views\NewFolder\**" />
+		<Content Remove="Views\NewFolder\**" />
+		<EmbeddedResource Remove="Views\NewFolder\**" />
+		<None Remove="Views\NewFolder\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="Migrations\20240517144745_init.cs" />
+		<Compile Remove="Migrations\20240517144745_init.Designer.cs" />
+		<Compile Remove="Migrations\20240613125713_Dieren.cs" />
+		<Compile Remove="Migrations\20240613125713_Dieren.Designer.cs" />
+		<Compile Remove="Migrations\dierentuinnContextModelSnapshot.cs" />
+		<Compile Remove="Models\ApplicationDbContext.cs" />
+		<Compile Remove="Views\animals\animal.cs" />
+		<Compile Remove="Views\NewFolder1\animal.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.6" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.6" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
+		<!-- Remove the Pomelo package if not needed -->
+		<!--<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0-preview.1" />-->
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Migrations\" />
+	</ItemGroup>
+
+</Project>
