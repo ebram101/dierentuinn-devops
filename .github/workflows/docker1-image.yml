@@ -1,43 +1,43 @@
-name: Docker Building and Testing
+name: Create, test and Publish Dotnet Release
 
 on:
   push:
-    branches:
-      - 'master'
+    branches: [ "" ]
   pull_request:
-    branches:
-      - 'master'
+    branches: [ "" ]
 
 jobs:
-  build_and_publish:
-    runs-on: ubuntu-latest
-    env:
-      IMAGE_NAME: dierentuinn-name:${{ github.sha }}
-
+  build:
+    runs-on: [self-hosted, Linux, ARM64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Build the Docker image
-        run: docker build --no-cache --file Dierentuinn/Dockerfile --tag $IMAGE_NAME Dierentuinn
-
-      - name: Run tests inside Docker container
+      - name: Build and cache Docker image
         run: |
-          docker run --rm $IMAGE_NAME bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
+          docker build --no-cache -t ebram100/dierentuinn-name:${{ github.ref_name }} --target build --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
 
+  unittesting:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: build
+    steps:
+      - name: Run dotnet tests inside Docker container
+        run: docker run --entrypoint "" ebram100/dierentuinn-name:${{ github.ref_name }} dotnet test
+
+  prepare-release:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: unittesting
+    steps:
+      - name: Docker build as final
+        run: |
+          echo "var: "${{ needs.build.outputs.docker_tag_version }} && \
+          docker build -t ebram100/dierentuinn-name:${{ github.ref_name }} --target final --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
+
+  push-docker-hub:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: prepare-release
+    steps:
       - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
       - name: Push Docker image
-        run: docker push $IMAGE_NAME
+        run: docker push ebram100/dierentuinn-name:${{ github.ref_name }}
