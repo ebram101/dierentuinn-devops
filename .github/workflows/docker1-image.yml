@@ -2,9 +2,11 @@ name: Create, test and Publish Dotnet Release
 
 on:
   push:
-    branches: [ "" ]
+    branches: 
+    - 'master'
   pull_request:
-    branches: [ "" ]
+    branches: 
+    - 'master'
 
 jobs:
   build:
