@@ -30,13 +30,8 @@ FROM build AS testrunner
 WORKDIR /src/TestProject1
 RUN dotnet test --logger:trx
 
-# Publish the application
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "dierentuinn.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
 # Final stage: use the runtime image
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/build .
 ENTRYPOINT ["dotnet", "dierentuinn.dll"]
