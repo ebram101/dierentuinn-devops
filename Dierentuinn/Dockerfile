@@ -10,15 +10,15 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy the project files and restore dependencies
-COPY ["Dierentuin/Dierentuin.csproj", "Dierentuin/"]
+COPY ["Dierentuinn/dierentuinn.csproj", "Dierentuinn/"]
 COPY ["TestProject1/TestProject1.csproj", "TestProject1/"]
-RUN dotnet restore "Dierentuin/Dierentuin.csproj"
+RUN dotnet restore "Dierentuinn/dierentuinn.csproj"
 RUN dotnet restore "TestProject1/TestProject1.csproj"
 
 # Copy all files and build the application
 COPY . .
-WORKDIR "/src/Dierentuin"
-RUN dotnet build "Dierentuin.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Dierentuinn"
+RUN dotnet build "dierentuinn.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Stage for running tests
 FROM build AS testrunner
@@ -28,10 +28,10 @@ RUN dotnet test --logger:trx
 # Publish the application
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Dierentuin.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "dierentuinn.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Final stage: use the runtime image
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Dierentuin.dll"]
+ENTRYPOINT ["dotnet", "dierentuinn.dll"]
