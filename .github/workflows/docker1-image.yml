@@ -1,53 +1,45 @@
-name: Docker Building
+name: Create, test and Publish Dotnet Release
 
 on:
   push:
-    branches:
-      - 'master'
+    branches: 
+    - 'master'
   pull_request:
-    branches:
-      - 'master'
+    branches: 
+    - 'master'
 
 jobs:
-  build_and_publish:
-    runs-on: ubuntu-latest
-    env:
-      IMAGE_NAME: dierentuinn-name:${{ github.sha }}
-
+  build:
+    runs-on: [self-hosted, Linux, ARM64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build the Docker image
-        run: docker build --no-cache --file Dierentuinn/Dockerfile --tag $IMAGE_NAME Dierentuinn
-
-      - name: Run tests and build
+      - name: Build and cache Docker image
         run: |
-          docker run --rm \
-          -v /home/runner/work/dierentuinn-devops/dierentuinn-devops:/workspace \
-          -w /workspace \
-          mcr.microsoft.com/dotnet/sdk:8.0 \
-          bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
-          
+          docker build --no-cache -t ebram100/dierentuinn-name:${{ github.ref_name }} --target build --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
+
+  unittesting:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: build
+    steps:
+      - name: Run dotnet tests inside Docker container
+        run: docker run --entrypoint "" ebram100/dierentuinn-name:${{ github.ref_name }} dotnet test
+
+  prepare-release:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: unittesting
+    steps:
+      - name: Docker build as final
+        run: |
+          echo "var: "${{ needs.build.outputs.docker_tag_version }} && \
+          docker build -t ebram100/dierentuinn-name:${{ github.ref_name }} --target final --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
+
+  push-docker-hub:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: prepare-release
+    steps:
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Push the Docker image
-        run: |
-          docker tag $IMAGE_NAME ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME
-          docker push ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME
-
-      - name: Deploy to Server
-        env:
-          IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/dierentuinn-name:${{ github.sha }}
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker pull $IMAGE_NAME
-          docker stop dierentuinn-container || true
-          docker rm dierentuinn-container || true
-          docker run -d --name dierentuinn-container -p 80:80 $IMAGE_NAME
-          EOF
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Push Docker image
+        run: docker push ebram100/dierentuinn-name:${{ github.ref_name }}

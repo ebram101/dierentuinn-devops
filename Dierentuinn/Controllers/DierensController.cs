@@ -1,94 +1,82 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using dierentuinn.Data;
 using dierentuinn.Models;
 
 namespace dierentuinn.Controllers
 {
-    public class DierensController : Controller
+    public class DierenController : Controller
     {
-        private readonly dierentuinnContext _context;
+        private readonly DierentuinnContext _context;
 
-        public DierensController(dierentuinnContext context)
+        public DierenController(DierentuinnContext context)
         {
             _context = context;
         }
 
-        // GET: Dierens
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Dieren.ToListAsync());
-        }
-
-        // GET: Dierens/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var dieren = await _context.Dieren
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (dieren == null)
-            {
-                return NotFound();
-            }
-
+            var dieren = await _context.Dierens
+                .Include(d => d.Category)
+                .Include(d => d.Enclosure)
+                .ToListAsync();
             return View(dieren);
         }
 
-        // GET: Dierens/Create
+        public async Task<IActionResult> Details(int id)
+        {
+            var dier = await _context.Dierens
+                .Include(d => d.Category)
+                .Include(d => d.Enclosure)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (dier == null)
+            {
+                return NotFound();
+            }
+            return View(dier);
+        }
+
         public IActionResult Create()
         {
+            ViewData["Categories"] = _context.Categories.ToList();
+            ViewData["Enclosures"] = _context.Enclosures.ToList();
             return View();
         }
 
-        // POST: Dierens/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,category,size")] Dieren dieren)
+        public async Task<IActionResult> Create([Bind("Id,Name,Species,CategoryId,Size,DietaryClass,ActivityPattern,Prey,EnclosureId,SpaceRequirement,SecurityRequirement")] Dieren dier)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(dieren);
+                _context.Add(dier);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(dieren);
+            ViewData["Categories"] = _context.Categories.ToList();
+            ViewData["Enclosures"] = _context.Enclosures.ToList();
+            return View(dier);
         }
 
-        // GET: Dierens/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
+            var dier = await _context.Dierens.FindAsync(id);
+            if (dier == null)
             {
                 return NotFound();
             }
-
-            var dieren = await _context.Dieren.FindAsync(id);
-            if (dieren == null)
-            {
-                return NotFound();
-            }
-            return View(dieren);
+            ViewData["Categories"] = _context.Categories.ToList();
+            ViewData["Enclosures"] = _context.Enclosures.ToList();
+            return View(dier);
         }
 
-        // POST: Dierens/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,category,size")] Dieren dieren)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Species,CategoryId,Size,DietaryClass,ActivityPattern,Prey,EnclosureId,SpaceRequirement,SecurityRequirement")] Dieren dier)
         {
-            if (id != dieren.Id)
+            if (id != dier.Id)
             {
                 return NotFound();
             }
@@ -97,12 +85,12 @@ namespace dierentuinn.Controllers
             {
                 try
                 {
-                    _context.Update(dieren);
+                    _context.Update(dier);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DierenExists(dieren.Id))
+                    if (!DierenExists(dier.Id))
                     {
                         return NotFound();
                     }
@@ -113,91 +101,38 @@ namespace dierentuinn.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(dieren);
+            ViewData["Categories"] = _context.Categories.ToList();
+            ViewData["Enclosures"] = _context.Enclosures.ToList();
+            return View(dier);
         }
 
-        // GET: Dierens/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var dieren = await _context.Dieren
+            var dier = await _context.Dierens
+                .Include(d => d.Category)
+                .Include(d => d.Enclosure)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (dieren == null)
+            if (dier == null)
             {
                 return NotFound();
             }
 
-            return View(dieren);
+            return View(dier);
         }
 
-        // POST: Dierens/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var dieren = await _context.Dieren.FindAsync(id);
-            if (dieren != null)
-            {
-                _context.Dieren.Remove(dieren);
-            }
-
+            var dier = await _context.Dierens.FindAsync(id);
+            _context.Dierens.Remove(dier);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool DierenExists(int id)
         {
-            return _context.Dieren.Any(e => e.Id == id);
-        }
-
-
-
-        // GET: Dierens/Sunrise/5
-        public async Task<IActionResult> Sunrise(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var dieren = await _context.Dieren
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (dieren == null)
-            {
-                return NotFound();
-            }
-
-            string activityMessage;
-
-            switch (dieren.ActivityPattern.ToLower())
-            {
-                case "diurnal":
-                    activityMessage = $"{dieren.Name} wordt wakker bij zonsopgang.";
-                    break;
-                case "nocturnal":
-                    activityMessage = $"{dieren.Name} gaat slapen bij zonsopgang.";
-                    break;
-                case "always active":
-                    activityMessage = $"{dieren.Name} is altijd actief.";
-                    break;
-                default:
-                    activityMessage = $"Het activiteitspatroon van {dieren.Name} is onbekend.";
-                    break;
-            }
-
-            ViewBag.ActivityMessage = activityMessage;
-            return View(dieren);
-        }
-
-        // Andere acties ...
-
-        private bool DierenExist(int id)
-        {
-            return _context.Dieren.Any(e => e.Id == id);
+            return _context.Dierens.Any(e => e.Id == id);
         }
     }
 }

@@ -1,19 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using dierentuinn.Models;
 using Microsoft.EntityFrameworkCore;
-using dierentuinn.Models;
 
 namespace dierentuinn.Data
 {
-    public class dierentuinnContext : DbContext
+    public class DierentuinDbContext : DbContext
     {
-        public dierentuinnContext (DbContextOptions<dierentuinnContext> options)
+        public DierentuinDbContext(DbContextOptions <DierentuinDbContext> options)
             : base(options)
         {
         }
 
-        public DbSet<dierentuinn.Models.Dieren> Dieren { get; set; } = default!;
+        public DbSet<Dieren> Dierens { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Enclosure> Enclosures { get; set; }
+        public DbSet<CustomSize> CustomSizes { get; set; }
     }
 }
+
+
+
+
