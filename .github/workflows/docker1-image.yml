@@ -11,21 +11,13 @@ on:
 jobs:
   build:
     runs-on: [self-hosted, Linux, ARM64]
-    env:
-      IMAGE_NAME: dierentuinn-name:${{ github.sha }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build and cache Docker image
         run: |
-          docker build --no-cache \
-            --file Dierentuinn/Dockerfile \
-            --tag $IMAGE_NAME \
-            --build-arg "INCLUDE_UNITTESTING=true" \
-            --target build \
-            Dierentuinn
+          docker build --no-cache -t ebram100/dierentuinn-name:${{ github.ref_name }} --target build --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
 
   unittesting:
     runs-on: [self-hosted, Linux, ARM64]
@@ -33,7 +25,7 @@ jobs:
 
     steps:
       - name: Run dotnet tests inside Docker container
-        run: docker run --entrypoint "" dierentuinn-name:${{ github.sha }} dotnet test
+        run: docker run --entrypoint "" ebram100/dierentuinn-name:${{ github.sha }} dotnet test
 
   prepare-release:
     runs-on: [self-hosted, Linux, ARM64]
