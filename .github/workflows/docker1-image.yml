@@ -3,43 +3,54 @@ name: Create, test and Publish Dotnet Release
 on:
   push:
     branches: 
-    - 'master'
+      - 'master'
   pull_request:
     branches: 
-    - 'master'
+      - 'master'
 
 jobs:
   build:
     runs-on: [self-hosted, Linux, ARM64]
+    env:
+      IMAGE_NAME: dierentuinn-name:${{ github.sha }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build and cache Docker image
         run: |
-          docker build --no-cache -t ebram100/dierentuinn-name:${{ github.ref_name }} --target build --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
+          docker build --no-cache \
+            --file Dierentuinn/Dockerfile \
+            --tag $IMAGE_NAME \
+            --build-arg "INCLUDE_UNITTESTING=true" \
+            --target build \
+            Dierentuinn
 
   unittesting:
     runs-on: [self-hosted, Linux, ARM64]
     needs: build
+
     steps:
       - name: Run dotnet tests inside Docker container
-        run: docker run --entrypoint "" ebram100/dierentuinn-name:${{ github.ref_name }} dotnet test
+        run: docker run --entrypoint "" dierentuinn-name:${{ github.sha }} dotnet test
 
   prepare-release:
     runs-on: [self-hosted, Linux, ARM64]
     needs: unittesting
+
     steps:
       - name: Docker build as final
         run: |
-          echo "var: "${{ needs.build.outputs.docker_tag_version }} && \
           docker build -t ebram100/dierentuinn-name:${{ github.ref_name }} --target final --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
 
   push-docker-hub:
     runs-on: [self-hosted, Linux, ARM64]
     needs: prepare-release
+
     steps:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
       - name: Push Docker image
         run: docker push ebram100/dierentuinn-name:${{ github.ref_name }}
