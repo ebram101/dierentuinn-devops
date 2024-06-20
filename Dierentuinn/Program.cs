@@ -1,5 +1,6 @@
+// Program.cs
 using Microsoft.EntityFrameworkCore;
-using dierentuinn.Data;
+using dierentuinn.Data; // Ensure this matches the namespace of your DbContext
 
 var builder = WebApplication.CreateBuilder(args);
 
