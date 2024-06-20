@@ -12,7 +12,7 @@ WORKDIR /src
 # Copy the project files and restore dependencies
 COPY ["Dierentuinn/dierentuinn.csproj", "Dierentuinn/"]
 RUN dotnet restore "./Dierentuinn/./dierentuinn.csproj"
-COPY ["TestProject1/TestProject1.csproj TestProject1/"]
+COPY ["TestProject1/TestProject1.csproj", "TestProject1/"]
 RUN dotnet restore "./TestProject1./TestProject1.csproj"
 
 # Debug step: List directory contents to verify files are copied
