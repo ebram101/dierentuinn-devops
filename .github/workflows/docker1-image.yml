@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Run dotnet tests inside Docker container
-        run: docker run --entrypoint "" ebram100/dierentuinn-name:${{ github.sha }} dotnet test
+        run: docker run --entrypoint "" ebram100/dierentuinn-name:master dotnet test
 
   prepare-release:
     runs-on: [self-hosted, Linux, ARM64]
