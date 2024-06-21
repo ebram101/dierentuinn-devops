@@ -12,8 +12,8 @@ WORKDIR /src
 # Copy the project files and restore dependencies
 COPY ["Dierentuinn/dierentuinn.csproj", "Dierentuinn/"]
 COPY ["TestProject1/TestProject1.csproj", "TestProject1/"]
-RUN dotnet restore "./Dierentuinn/dierentuinn.csproj"
-RUN dotnet restore "./TestProject1/TestProject1.csproj"
+RUN dotnet restore "./Dierentuinn/./dierentuinn.csproj"
+RUN dotnet restore "./TestProject1/./TestProject1.csproj"
 
 # Debug step: List directory contents to verify files are copied
 RUN ls -la /src/Dierentuinn
