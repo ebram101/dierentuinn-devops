@@ -9,9 +9,9 @@ namespace dierentuinn.Controllers
 {
     public class DierenController : Controller
     {
-        private readonly DierentuinnContext _context;
+        private readonly DierentuinDbContext _context;
 
-        public DierenController(DierentuinnContext context)
+        public DierenController(DierentuinDbContext context)
         {
             _context = context;
         }
