@@ -11,23 +11,23 @@ WORKDIR /src
 
 # Copy the project files and restore dependencies
 COPY ["Dierentuinn/dierentuinn.csproj", "Dierentuinn/"]
-COPY ["TestProject1/TestProject1.csproj", "TestProject1/"]
+COPY ["TestProject2/TestProject2.csproj", "TestProject2/"]
 RUN dotnet restore "./Dierentuinn/./dierentuinn.csproj"
-RUN dotnet restore "./TestProject1/./TestProject1.csproj"
+RUN dotnet restore "./TestProject2/./TestProject2.csproj"
 
 # Debug step: List directory contents to verify files are copied
 RUN ls -la /src/Dierentuinn
-RUN ls -la /src/TestProject1
+RUN ls -la /src/TestProject2
 
 # Copy all files and build the application
 COPY Dierentuinn/ Dierentuinn/
-COPY TestProject1/ TestProject1/
+COPY TestProject2/ TestProject2/
 WORKDIR /src/Dierentuinn
 RUN dotnet build "dierentuinn.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Stage for running tests
 FROM build AS testrunner
-WORKDIR /src/TestProject1
+WORKDIR /src/TestProject2
 RUN dotnet test --logger:trx
 
 # Final stage: use the runtime image
