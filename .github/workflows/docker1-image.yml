@@ -22,15 +22,13 @@ jobs:
   unittesting:
     runs-on: [self-hosted, Linux, ARM64]
     needs: build
-
     steps:
       - name: Run dotnet tests inside Docker container
-        run: docker run --entrypoint "" ebram100/dierentuinn-name:${{ github.sha }} dotnet test
+        run: docker run --entrypoint "" ebram100/dierentuinn-name:master dotnet test
 
   prepare-release:
     runs-on: [self-hosted, Linux, ARM64]
     needs: unittesting
-
     steps:
       - name: Docker build as final
         run: |
@@ -39,10 +37,24 @@ jobs:
   push-docker-hub:
     runs-on: [self-hosted, Linux, ARM64]
     needs: prepare-release
-
     steps:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Push Docker image
         run: docker push ebram100/dierentuinn-name:${{ github.ref_name }}
+
+  deploy:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: push-docker-hub
+    env:
+      KUBECONFIG: ./config.yml # kubeconfig path
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to Kubernetes host (old steps)
+        run: echo "${{ secrets.KUBECONFIG }}" > ./config.yml
+
+      - name: Deploy to Kubernetes host
+        run: kubectl apply -f deploy.yml
