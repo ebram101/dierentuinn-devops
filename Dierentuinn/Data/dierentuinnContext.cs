@@ -12,7 +12,7 @@ namespace dierentuinn.Data
         {
         }
 
-        public DbSet<Dieren> Dierens { get; set; }
+        public virtual DbSet<Dieren> Dierens { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Enclosure> Enclosures { get; set; }
         
