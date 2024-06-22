@@ -1,60 +1,62 @@
-name: Docker Building and Deployment
-
-on:
-  push:
-    branches:
-      - 'master'
-  pull_request:
-    branches:
-      - 'master'
-
-jobs:
-  build_and_publish:
-    runs-on: ubuntu-latest
-    env:
-      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/dierentuinn-name:${{ github.sha }}
-      BUILD_CONFIGURATION: Release
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Build the Docker image
-        run: docker build --no-cache --build-arg BUILD_CONFIGURATION=$BUILD_CONFIGURATION --file Dierentuinn/Dockerfile --tag $IMAGE_NAME Dierentuinn
-
-      - name: Push Docker image to GitHub Container Registry
-        run: docker push $IMAGE_NAME
-
-      - name: Run tests and build
-        run: |
-          docker run --rm \
-          -v $(pwd):/workspace \
-          -w /workspace \
-          mcr.microsoft.com/dotnet/sdk:8.0 \
-          bash -c "dotnet restore && dotnet build --no-restore && dotnet test --no-build --verbosity normal"
-
-  deploy:
-    needs: build_and_publish
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
-
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
-
-      - name: Deploy to Kubernetes
-        run: |
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: group13
+  namespace: group13
+  labels:
+    app: group13
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: group13
+  template:
+    metadata:
+      labels:
+        app: group13
+    spec:
+      containers:
+      - name: group13
+        image: ebram100/dierentuinn-name:latest
+        ports:
+        - name: web
+          containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      imagePullSecrets:
+      - name: registry-credentials
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: group13
+  namespace: group13
+spec:
+  ports:
+    - name: web
+      port: 80
+      targetPort: web
+  selector:
+    app: group13
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: group13route
+  namespace: group13
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`13.web.dops.tech`) && PathPrefix(`/`)
+    kind: Rule
+    services:
+    - name: group13
+      port: 80
+  tls:
+    certResolver: myresolver
