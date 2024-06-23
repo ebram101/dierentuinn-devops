@@ -19,6 +19,13 @@ jobs:
         run: |
           docker build --no-cache -t ebram100/dierentuinn-name:${{ github.ref_name }} --target build --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
 
+  unittesting:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: build
+    steps:
+      - name: Run dotnet tests inside Docker container
+        run: docker run --entrypoint "" ebram100/dierentuinn-name:${{ github.ref_name }} dotnet test
+
   sonarcloud:
     runs-on: ubuntu-latest
     needs: build
@@ -68,17 +75,17 @@ jobs:
       - name: Push Docker image
         run: docker push ebram100/dierentuinn-name:${{ github.ref_name }}
 
-  # deploy:
-  #   runs-on: [self-hosted, Linux, ARM64]
-  #   needs: push-docker-hub
-  #   env:
-  #     KUBECONFIG: ./config.yml # kubeconfig path
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+  deploy:
+    runs-on: [self-hosted, Linux, ARM64]
+    needs: push-docker-hub
+    env:
+      KUBECONFIG: ./config.yml # kubeconfig path
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-  #     - name: Deploy to Kubernetes host (old steps)
-  #       run: echo "${{ secrets.KUBECONFIG }}" > ./config.yml
+      - name: Deploy to Kubernetes host (old steps)
+        run: echo "${{ secrets.KUBECONFIG }}" > ./config.yml
 
-  #     - name: Deploy to Kubernetes host
-  #       run: kubectl apply -f deploy.yml
+      - name: Deploy to Kubernetes host
+        run: kubectl apply -f deploy.yml
