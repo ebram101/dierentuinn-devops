@@ -28,7 +28,7 @@ jobs:
 
   sonarcloud:
     runs-on: ubuntu-latest
-    needs: Build
+    needs: build
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -45,9 +45,10 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          dotnet-sonarscanner begin /k:"ebram101_dierentuinn-devops" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          dotnet-sonarscanner begin /k:"ebram101_dierentuinn-devops" /o:"ebram101" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
           dotnet build
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+  
   prepare-release:
     runs-on: [self-hosted, Linux, ARM64]
     needs: sonarcloud
