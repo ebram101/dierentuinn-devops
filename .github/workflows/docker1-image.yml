@@ -1,4 +1,4 @@
-name: Create, test and Publish Dotnet Release
+name: Create, Test, and Publish Dotnet Release
 
 on:
   push:
@@ -19,16 +19,39 @@ jobs:
         run: |
           docker build --no-cache -t ebram100/dierentuinn-name:${{ github.ref_name }} --target build --build-arg "INCLUDE_UNITTESTING=true" -f ./Dierentuinn/Dockerfile .
 
-  unittesting:
-    runs-on: [self-hosted, Linux, ARM64]
+  # unittesting:
+  #   runs-on: [self-hosted, Linux, ARM64]
+  #   needs: build
+  #   steps:
+  #     - name: Run dotnet tests inside Docker container
+  #       run: docker run --entrypoint "" ebram100/dierentuinn-name:master dotnet test
+
+  sonarcloud:
+    runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Run dotnet tests inside Docker container
-        run: docker run --entrypoint "" ebram100/dierentuinn-name:master dotnet test
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Install SonarCloud Scanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Run SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet-sonarscanner begin /k:"<your_project_key>" /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+          dotnet build
+          dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}
 
   prepare-release:
     runs-on: [self-hosted, Linux, ARM64]
-    needs: unittesting
+    needs: sonarcloud
     steps:
       - name: Docker build as final
         run: |
@@ -44,17 +67,17 @@ jobs:
       - name: Push Docker image
         run: docker push ebram100/dierentuinn-name:${{ github.ref_name }}
 
-  deploy:
-    runs-on: [self-hosted, Linux, ARM64]
-    needs: push-docker-hub
-    env:
-      KUBECONFIG: ./config.yml # kubeconfig path
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  # deploy:
+  #   runs-on: [self-hosted, Linux, ARM64]
+  #   needs: push-docker-hub
+  #   env:
+  #     KUBECONFIG: ./config.yml # kubeconfig path
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-      - name: Deploy to Kubernetes host (old steps)
-        run: echo "${{ secrets.KUBECONFIG }}" > ./config.yml
+  #     - name: Deploy to Kubernetes host (old steps)
+  #       run: echo "${{ secrets.KUBECONFIG }}" > ./config.yml
 
-      - name: Deploy to Kubernetes host
-        run: kubectl apply -f deploy.yml
+  #     - name: Deploy to Kubernetes host
+  #       run: kubectl apply -f deploy.yml
