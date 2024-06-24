@@ -1,5 +1,5 @@
 kind: Deployment
- apiVersion: apps/v1
+apiVersion: apps/v1
 metadata:
   name: group13
   namespace: group13
@@ -30,26 +30,26 @@ metadata:
             cpu: "500m"
       imagePullSecrets:
       - name: registry-credentials
-
- apiVersion: v1
- kind: Service
- metadata:
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: group13
   namespace: group13
- spec:
+spec:
   ports:
     - name: web
       port: 80
       targetPort: web
   selector:
     app: group13
-
- apiVersion: traefik.io/v1alpha1
- kind: IngressRoute
- metadata:
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
   name: group13route
   namespace: group13
- spec:
+spec:
   entryPoints:
     - websecure
   routes:
