@@ -86,5 +86,5 @@ jobs:
 
       - name: Deploy to Kubernetes host
         run: |
-          echo "${{ secrets.KUBERCONFIG }}" > ./config.yml
+          echo "${{ secrets.KUBECONFIG }}" > ./config.yml
           kubectl apply --validate=false -f ./Dierentuinn/deploy.yaml
