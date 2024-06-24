@@ -5,7 +5,7 @@ metadata:
   namespace: group13
   labels:
     app: group13
-spec:
+    spec:
   replicas: 1
   selector:
     matchLabels:
