@@ -1,10 +1,10 @@
 ﻿@model IEnumerable<dierentuinn.Models.Dieren>
 
 @{
-    ViewData["Title"] = "Dieren";
+    ViewData["Title"] = "Dierens";
 }
 
-<h1>Dieren</h1>
+<h1>Dierens</h1>
 
 <p>
     <a href="@Url.Action("Create")" class="btn btn-primary">Create New</a>
@@ -22,26 +22,26 @@
             <th>Enclosure</th>
             <th>Space Requirement</th>
             <th>Security Requirement</th>
-            <th></th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var dier in Model)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.Species)</td>
-                <td>@Html.DisplayFor(modelItem => item.Category.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.Size)</td>
-                <td>@Html.DisplayFor(modelItem => item.DietaryClass)</td>
-                <td>@Html.DisplayFor(modelItem => item.ActivityPattern)</td>
-                <td>@Html.DisplayFor(modelItem => item.Enclosure.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.SpaceRequirement)</td>
-                <td>@Html.DisplayFor(modelItem => item.SecurityRequirement)</td>
+                <td>@Html.DisplayFor(modelItem => dier.Name)</td>
+                <td>@Html.DisplayFor(modelItem => dier.Species)</td>
+                <td>@Html.DisplayFor(modelItem => dier.Category != null ? dier.Category.Name : "No Category")</td>
+                <td>@Html.DisplayFor(modelItem => dier.Size)</td>
+                <td>@Html.DisplayFor(modelItem => dier.DietaryClass)</td>
+                <td>@Html.DisplayFor(modelItem => dier.ActivityPattern)</td>
+                <td>@Html.DisplayFor(modelItem => dier.Enclosure != null ? dier.Enclosure.Name : "No Enclosure")</td>
+                <td>@Html.DisplayFor(modelItem => dier.SpaceRequirement)</td>
+                <td>@Html.DisplayFor(modelItem => dier.SecurityRequirement)</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-secondary">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
+                    <a asp-action="Edit" asp-route-id="@dier.Id" class="btn btn-secondary">Edit</a>
+                    <a asp-action="Details" asp-route-id="@dier.Id" class="btn btn-info">Details</a>
+                    <a asp-action="Delete" asp-route-id="@dier.Id" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
         }
