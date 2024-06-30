@@ -1,7 +1,5 @@
-﻿using dierentuinn.Models;
-using Microsoft.EntityFrameworkCore;
-
-
+﻿using Microsoft.EntityFrameworkCore;
+using dierentuinn.Models;
 
 namespace dierentuinn.Data
 {
@@ -12,14 +10,15 @@ namespace dierentuinn.Data
         {
         }
 
-        public virtual DbSet<Dieren> Dierens { get; set; }
+        public DbSet<Dieren> Dierens { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Enclosure> Enclosures { get; set; }
-        
-        public DbSet<CustomSize> CustomSizes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            
+        }
     }
 }
-
-
-
-

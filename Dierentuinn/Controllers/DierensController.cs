@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace dierentuinn.Controllers
 {
@@ -20,120 +21,140 @@ namespace dierentuinn.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        // GET: Dieren
+        public async Task<IActionResult> Index()
         {
-            var dierenList = _context.Dierens.Include(d => d.Category).Include(d => d.Enclosure).ToList();
+            var dierenList = await _context.Dierens.Include(d => d.Category).Include(d => d.Enclosure).ToListAsync();
             return View("./Views/Dierens/Index.cshtml", dierenList);
         }
 
-        public IActionResult Details(int id)
+        // GET: Dieren/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            var dier = _context.Dierens
-                               .Include(d => d.Category)
-                               .Include(d => d.Enclosure)
-                               .FirstOrDefault(d => d.Id == id);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var dier = await _context.Dierens
+                .Include(d => d.Category)
+                .Include(d => d.Enclosure)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (dier == null)
             {
                 return NotFound();
             }
+
             return View("./Views/Dierens/Details.cshtml", dier);
         }
 
+        // GET: Dieren/Create
         public IActionResult Create()
         {
-            try
-            {
-                PopulateDropDownLists();
-                return View("./Views/Dierens/Create.cshtml");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Create GET");
-                return RedirectToAction(nameof(Index));
-            }
+            PopulateDropDownLists();
+            return View("./Views/Dierens/Create.cshtml");
         }
 
+        // POST: Dieren/Create
         [HttpPost]
-        public IActionResult Create(Dieren dier)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,Name,Species,CategoryId,Description,EnclosureId")] Dieren dier)
         {
             if (ModelState.IsValid)
             {
-                _context.Dierens.Add(dier);
-                _context.SaveChanges();
+                _context.Add(dier);
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            try
-            {
-                PopulateDropDownLists(dier);
-                return View("./Views/Dierens/Create.cshtml", dier);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Create POST");
-                return RedirectToAction(nameof(Index));
-            }
+            PopulateDropDownLists(dier);
+            return View("./Views/Dierens/Create.cshtml", dier);
         }
 
-        public IActionResult Edit(int id)
+        // GET: Dieren/Edit/5
+        public async Task<IActionResult> Edit(int? id)
         {
-            var dier = _context.Dierens.Find(id);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var dier = await _context.Dierens.FindAsync(id);
             if (dier == null)
             {
                 return NotFound();
             }
-            try
-            {
-                PopulateDropDownLists(dier);
-                return View("./Views/Dierens/Edit.cshtml", dier);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Edit GET");
-                return RedirectToAction(nameof(Index));
-            }
+            PopulateDropDownLists(dier);
+            return View("./Views/Dierens/Edit.cshtml", dier);
         }
 
+        // POST: Dieren/Edit/5
         [HttpPost]
-        public IActionResult Edit(Dieren dier)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Species,CategoryId,Description,EnclosureId")] Dieren dier)
         {
+            if (id != dier.Id)
+            {
+                return NotFound();
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Update(dier);
-                _context.SaveChanges();
+                try
+                {
+                    _context.Update(dier);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!DierenExists(dier.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
-            try
-            {
-                PopulateDropDownLists(dier);
-                return View("./Views/Dierens/Edit.cshtml", dier);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Edit POST");
-                return RedirectToAction(nameof(Index));
-            }
+            PopulateDropDownLists(dier);
+            return View("./Views/Dierens/Edit.cshtml", dier);
         }
 
-        public IActionResult Delete(int id)
+        // GET: Dieren/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
-            var dier = _context.Dierens
-                               .Include(d => d.Category)
-                               .Include(d => d.Enclosure)
-                               .FirstOrDefault(d => d.Id == id);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var dier = await _context.Dierens
+                .Include(d => d.Category)
+                .Include(d => d.Enclosure)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (dier == null)
             {
                 return NotFound();
             }
+
             return View("./Views/Dierens/Delete.cshtml", dier);
         }
 
+        // POST: Dieren/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var dier = _context.Dierens.Find(id);
+            var dier = await _context.Dierens.FindAsync(id);
             _context.Dierens.Remove(dier);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        private bool DierenExists(int id)
+        {
+            return _context.Dierens.Any(e => e.Id == id);
         }
 
         private void PopulateDropDownLists(Dieren dier = null)
@@ -151,6 +172,7 @@ namespace dierentuinn.Controllers
                 _logger.LogWarning("Enclosures collection is empty");
             }
 
+            // Populate ViewBag for dropdown lists
             ViewBag.CategoryId = new SelectList(categories, "Id", "Name", dier?.CategoryId);
             ViewBag.EnclosureId = new SelectList(enclosures, "Id", "Name", dier?.EnclosureId);
         }

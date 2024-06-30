@@ -18,5 +18,7 @@ namespace dierentuinn.Models
         public Enclosure Enclosure { get; set; }
         public double SpaceRequirement { get; set; }
         public SecurityLevel SecurityRequirement { get; set; }
+       
+        
     }
 }
