@@ -10,13 +10,18 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="Views\Categories\**" />
 		<Compile Remove="Views\NewFolder\**" />
+		<Content Remove="Views\Categories\**" />
 		<Content Remove="Views\NewFolder\**" />
+		<EmbeddedResource Remove="Views\Categories\**" />
 		<EmbeddedResource Remove="Views\NewFolder\**" />
+		<None Remove="Views\Categories\**" />
 		<None Remove="Views\NewFolder\**" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Remove="Controllers\CategoriesController.cs" />
 		<Compile Remove="Migrations\20240517144745_init.cs" />
 		<Compile Remove="Migrations\20240517144745_init.Designer.cs" />
 		<Compile Remove="Migrations\20240613125713_Dieren.cs" />
